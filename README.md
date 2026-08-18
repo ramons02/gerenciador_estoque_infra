@@ -30,17 +30,43 @@ e do deploy.
 | `SPRING_PROFILES_ACTIVE` | Perfil ativo (`local`/`prod`) | sim |
 | `PORT` | Porta HTTP da API | nao (default 8080) |
 
-## Deploy no Render
+## Ambientes publicados
+
+| Componente | Onde | URL |
+|---|---|---|
+| API (Spring Boot) | Render (plano free) | `https://gerenciador-estoque-api-q7fs.onrender.com` |
+| App (React/Vite) | Vercel (deployment protegido) | `https://gerenciador-estoque-7dbdmm609-ramons02s-projects.vercel.app` |
+| Banco (PostgreSQL) | Neon (projeto `round-water-07779373`) | host `ep-still-bar-aycqhg1n-pooler.c-5.us-east-2.aws.neon.tech` |
+
+O Vercel usa `vercel.json` para reescrever `/api/*` direto para o Render (sem CORS na
+navegacao). O deployment Vercel esta **protegido** (exige login) - nao e aberto ao publico.
+
+## Banco de dados (Neon)
+
+O banco de producao e PostgreSQL no **Neon** (SSL obrigatorio, `DB_SSL_PARAMS=sslmode=require`):
+
+- **Plano Free:** 0,5 GB de armazenamento.
+- **Plano Launch** (pago): 10 GB de armazenamento.
+
+Para um sistema de gas/agua (vendas, estoque, clientes), 0,5 GB comporta anos de uso.
+Plano e uso atual: console.neon.tech -> projeto `round-water-07779373` -> aba *Storage*.
+
+## Deploy no Render e sono do plano free
 
 O blueprint (`render.yaml`) fica na raiz do repositorio da API
-(`gerenciador_estoque_api/render.yaml`) e define:
+(`gerenciador_estoque_api/render.yaml`) e define o servico da API (Java,
+`mvn clean package -DskipTests`).
 
-- **Banco:** `gerenciador-estoque-db` (PostgreSQL 16, plano free).
-- **API:** `gerenciador-estoque-api` (Java, `mvn clean package -DskipTests`).
+**Limitacao do plano free:** o servico **dorme apos ~15 min sem uso** e o primeiro acesso
+leva 30-120s (cold start) para acordar. Para manter a API acordada 24/7:
 
-Ao conectar o repositorio `ramons02/gerenciador_estoque_api` como **Blueprint** no Render,
-ele cria o banco e a API, injetando as credenciais via `fromDatabase` (as variaveis
-`DB_*` do `env/prod.env` sao preenchidas automaticamente).
+- O workflow `.github/workflows/keep-alive-render.yml` (este repositorio) faz um ping na
+  API a cada 6 minutos via GitHub Actions (gratis).
+- Alternativa: monitor externo tipo UptimeRobot (intervalo de 5 min) ou plano pago do
+  Render (~US$7/mes, nunca dorme).
+
+Para uma apresentacao ao cliente, prefira o **jar local** (zero latencia) ou garanta que a
+API esteja acordada antes de mostrar o sistema.
 
 ## Uso local (dev)
 
