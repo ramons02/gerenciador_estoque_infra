@@ -25,6 +25,7 @@ e do deploy.
 | `DB_NAME` | Nome do banco | sim |
 | `SPRING_DATASOURCE_USERNAME` | Usuario do banco | sim |
 | `SPRING_DATASOURCE_PASSWORD` | Senha do banco | sim |
+| `DB_SSL_PARAMS` | Parametros extras da JDBC URL (ex: `?sslmode=require` no Neon) | nao (vazio) |
 | `APP_CORS_ORIGINS` | Origens permitidas no CORS | sim |
 | `SPRING_PROFILES_ACTIVE` | Perfil ativo (`local`/`prod`) | sim |
 | `PORT` | Porta HTTP da API | nao (default 8080) |
